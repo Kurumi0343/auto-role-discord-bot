@@ -1,46 +1,36 @@
 // commands.js
 
-module.exports = [
-  {
-    name: 'gstart',
-    description: 'Start Giveaway',
-    options: [
-      {
-        name: 'duration',
-        type: 3, // String
-        description: 'Giveaway duration',
-        required: true,
-      },
-      {
-        name: 'winners',
-        type: 4, // INTEGER
-        description: 'Winners Count',
-        required: true,
-      },
-      {
-        name: 'prize',
-        type: 3, // String
-        description: 'Giveaway Prize',
-        required: true,
-      }
-    ],
-  },
-  {
-    name: 'greroll',
-    description: 'rerolls new winner from a giveaway',
-    options: [
-      {
-        name: 'giveaway_id',
-        type: 3, // String
-        description: 'Giveaway ID',
-        required: true,
-      },
-      {
-        name: 'count',
-        type: 4, //Integer
-        description: 'numbers of winners count',
-        required: false,
-      }
-    ],
-  }
+module.exports = 
+[
+    {
+      name: 'ping',
+      description: 'pong',
+      options: [
+      ],
+    },
+    {
+      name: 'setrole',
+      description: 'set role',
+      options: [
+        {
+          name: 'user_id',
+          type: 3,
+          description: 'user to set',
+          required: true,
+        },
+        {
+          name: 'role_id',
+          type: 3,
+          description: 'role id to set',
+          required: true,
+        },
+        {
+          name: 'duration',
+          type: 3,
+          description: 'role duration',
+          required: true,
+        }
+      ],
+    },
 ];
+  
