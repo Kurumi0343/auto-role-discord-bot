@@ -131,11 +131,11 @@ client.on('interactionCreate', async (interaction) => {
           jsonLength = jsonLength + 1;
         });
         await interaction.reply({
-          content: `This is bot is online total entries ${jsonLength.length()}`,
+          content: `This is bot is online total entries ${jsonLength}`,
           ephemeral: true
         });
       } catch (error) {
-
+        console.log(error)
       }
     }
     if (commandName === 'setrole') {
