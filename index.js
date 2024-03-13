@@ -126,13 +126,20 @@ client.on('interactionCreate', async (interaction) => {
     } = interaction;
     if (commandName === 'ping') {
       try {
-              
-      await interaction.reply({
-        content: `This is bot is online total entries ${storage.length()}`,
-        ephemeral: true
-      });
+        let jsonLength = 0;
+        fetch(storage)
+          .then(response => response.json())
+          .then(data => {
+            jsonLength = Object.keys(data).length; // Update global variable
+            console.log("JSON length:", jsonLength);
+          })
+          .catch(error => console.error('Error fetching JSON:', error));
+        await interaction.reply({
+          content: `This is bot is online total entries ${jsonLength.length()}`,
+          ephemeral: true
+        });
       } catch (error) {
-        
+
       }
     }
     if (commandName === 'setrole') {
