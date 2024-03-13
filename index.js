@@ -125,10 +125,15 @@ client.on('interactionCreate', async (interaction) => {
       user
     } = interaction;
     if (commandName === 'ping') {
+      try {
+              
       await interaction.reply({
-        content: `This is bot is online`,
+        content: `This is bot is online total entries ${storage.length()}`,
         ephemeral: true
       });
+      } catch (error) {
+        
+      }
     }
     if (commandName === 'setrole') {
       try {
