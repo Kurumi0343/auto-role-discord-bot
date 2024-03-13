@@ -127,13 +127,9 @@ client.on('interactionCreate', async (interaction) => {
     if (commandName === 'ping') {
       try {
         let jsonLength = 0;
-        fetch(storage)
-          .then(response => response.json())
-          .then(data => {
-            jsonLength = Object.keys(data).length; // Update global variable
-            console.log("JSON length:", jsonLength);
-          })
-          .catch(error => console.error('Error fetching JSON:', error));
+        jsonData.forEach((entry) => {
+          jsonLength = jsonLength + 1;
+        });
         await interaction.reply({
           content: `This is bot is online total entries ${jsonLength.length()}`,
           ephemeral: true
