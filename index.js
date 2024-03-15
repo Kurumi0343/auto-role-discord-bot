@@ -135,101 +135,154 @@ client.on('ready', async () => {
 
 client.on('interactionCreate', async (interaction) => {
 
-  if (interaction.isCommand()) {
-    const {
-      commandName,
-      options,
-      user
-    } = interaction;
-    if (commandName === 'ping') {
-      try {
-        await interaction.reply({
-          content: `This is bot is online`,
-          ephemeral: true
-        });
-      } catch (error) {
-        console.log(error)
-      }
-    }
-    if (commandName === 'validate') {
-      await interaction.guild.members.fetch();
-      interaction.guild.members.cache.forEach(async member => {
-        try {
-          const newbieRole = interaction.guild.roles.cache.get(config.role_id);
-          const joinTimestamp = Math.floor(member.joinedTimestamp / 1000);
-          const sixtyDaysAgo = Math.floor(new Date().getTime() / 1000) - (60 * 24 * 60 * 60);
-          const currentTimestamp = Math.floor(Date.now() / 1000);
-          const daysInServer = Math.floor(currentTimestamp - joinTimestamp);
-          const endDate = Math.floor(currentTimestamp + parseTimeToSeconds(config.role_duration) - daysInServer);
-          if (joinTimestamp > sixtyDaysAgo) {
-            if (newbieRole) {
-              member.roles.add(newbieRole)
-                .then(() => {
-                  const dataUser = member.id;
-                  const data = ref.child(dataUser);
-                  data.once('value')
-                    .then(snapshot => {
-                      const data = snapshot.val();
-                      ref.child(dataUser).set({
-                          userid: dataUser,
-                          isNew: true,
-                          joinDate: currentTimestamp,
-                          endDate: `${endDate}`,
-                          roleid: config.role_id,
+      if (interaction.isCommand()) {
+        const {
+          commandName,
+          options,
+          user
+        } = interaction;
+        if (commandName === 'ping') {
+          try {
+            await interaction.reply({
+              content: `This is bot is online`,
+              ephemeral: true
+            });
+          } catch (error) {
+            console.log(error)
+          }
+        }
+        if (commandName === 'validate') {
+          await interaction.guild.members.fetch();
+          interaction.guild.members.cache.forEach(async member => {
+            try {
+              const newbieRole = interaction.guild.roles.cache.get(config.role_id);
+              const joinTimestamp = Math.floor(member.joinedTimestamp / 1000);
+              const sixtyDaysAgo = Math.floor(new Date().getTime() / 1000) - (60 * 24 * 60 * 60);
+              const currentTimestamp = Math.floor(Date.now() / 1000);
+              const daysInServer = Math.floor(currentTimestamp - joinTimestamp);
+              const endDate = Math.floor(currentTimestamp + parseTimeToSeconds(config.role_duration) - daysInServer);
+              if (joinTimestamp > sixtyDaysAgo) {
+                if (newbieRole) {
+                  member.roles.add(newbieRole)
+                    .then(() => {
+                      const dataUser = member.id;
+                      const data = ref.child(dataUser);
+                      data.once('value')
+                        .then(snapshot => {
+                          const data = snapshot.val();
+                          ref.child(dataUser).set({
+                              userid: dataUser,
+                              isNew: true,
+                              joinDate: currentTimestamp,
+                              endDate: `${endDate}`,
+                              roleid: config.role_id,
+                            })
+                            .then(() => {})
+                            .catch(error => {
+                              console.error('Error pushing data:', error);
+                            });
+                          countdownTimers[dataUser] = setInterval(() => {
+                            updateCountdown(dataUser);
+                          }, 1000);
                         })
-                        .then(() => {})
                         .catch(error => {
-                          console.error('Error pushing data:', error);
+                          console.error('Error retrieving data:', error);
                         });
-                      countdownTimers[dataUser] = setInterval(() => {
-                        updateCountdown(dataUser);
-                      }, 1000);
                     })
-                    .catch(error => {
-                      console.error('Error retrieving data:', error);
+                    .catch((error) => console.error('Error adding role on join:', error));
+                }
+              }
+            } catch (error) {
+              console.log(error)
+            }
+          });
+          try {
+            await interaction.reply({
+              content: 'Validated!',
+              ephemeral: true
+            });
+          } catch {}
+          if (commandName === 'setrole') {
+            try {
+              const newbieRole = interaction.guild.roles.cache.get(options.getString('role_id'));
+              const fetchUser = await interaction.guild.members.fetch(options.getString('user_id'));
+              const currentDate = Math.floor(Date.now() / 1000);
+              if (parseTimeToSeconds(options.getString('duration')) <= 0) {
+                await interaction.reply({
+                  content: `${(parseTimeToSeconds(options.getString('duration')) === '-10') ? 'Sytanx Error, correct format: 1s, 1m, 1h, 1d, 1k' : 'Not supported time date'}`,
+                  ephemeral: true
+                });
+                return
+              }
+              const endDate = currentDate + parseTimeToSeconds(options.getString('duration'));
+              if (newbieRole) {
+                const optionsUser = options.getString('user_id');
+                fetchUser.roles.add(newbieRole)
+                  .then(() => {
+                    interaction.reply({
+                      content: 'Role added!',
+                      ephemeral: true
                     });
-                })
-                .catch((error) => console.error('Error adding role on join:', error));
+                    const data = ref.child(optionsUser);
+                    data.once('value')
+                      .then(snapshot => {
+                        const data = snapshot.val();
+                        ref.child(optionsUser).set({
+                            userid: optionsUser,
+                            isNew: true,
+                            joinDate: currentDate,
+                            endDate: endDate,
+                            roleid: config.role_id,
+                          })
+                          .then(() => {})
+                          .catch(error => {
+                            console.error('Error pushing data:', error);
+                          });
+                        countdownTimers[optionsUser] = setInterval(() => {
+                          updateCountdown(optionsUser);
+                        }, 1000);
+                      })
+                      .catch(error => {
+                        console.error('Error retrieving data:', error);
+                      });
+
+                  })
+                  .catch((error) => {
+                    interaction.reply({
+                      content: 'Role not added!',
+                      ephemeral: true
+                    })
+                    console.log(error)
+                  });
+              } else {
+                console.error(`Role with ID ${optionsUser} not found.`);
+              }
+            } catch (error) {
+              interaction.reply({
+                content: error,
+                ephemeral: true
+              })
             }
           }
-        } catch (error) {
-          console.log(error)
         }
+
       });
+
+    client.on('guildMemberAdd', async (member) => {
       try {
-              await interaction.reply({
-        content: 'Validated!',
-        ephemeral: true
-      });
-    } catch {
-      }
-    if (commandName === 'setrole') {
-      try {
-        const newbieRole = interaction.guild.roles.cache.get(options.getString('role_id'));
-        const fetchUser = await interaction.guild.members.fetch(options.getString('user_id'));
+        const newbieRole = member.guild.roles.cache.get(config.role_id);
         const currentDate = Math.floor(Date.now() / 1000);
-        if (parseTimeToSeconds(options.getString('duration')) <= 0) {
-          await interaction.reply({
-            content: `${(parseTimeToSeconds(options.getString('duration')) === '-10') ? 'Sytanx Error, correct format: 1s, 1m, 1h, 1d, 1k' : 'Not supported time date'}`,
-            ephemeral: true
-          });
-          return
-        }
-        const endDate = currentDate + parseTimeToSeconds(options.getString('duration'));
+        const endDate = currentDate + parseTimeToSeconds(config.role_duration);
         if (newbieRole) {
-          const optionsUser = options.getString('user_id');
-          fetchUser.roles.add(newbieRole)
+          member.roles.add(newbieRole)
             .then(() => {
-              interaction.reply({
-                content: 'Role added!',
-                ephemeral: true
-              });
-              const data = ref.child(optionsUser);
+              const dataUser = member.id;
+              const data = ref.child(dataUser);
               data.once('value')
                 .then(snapshot => {
                   const data = snapshot.val();
-                  ref.child(optionsUser).set({
-                      userid: optionsUser,
+                  ref.child(dataUser).set({
+                      userid: dataUser,
                       isNew: true,
                       joinDate: currentDate,
                       endDate: endDate,
@@ -239,75 +292,21 @@ client.on('interactionCreate', async (interaction) => {
                     .catch(error => {
                       console.error('Error pushing data:', error);
                     });
-                  countdownTimers[optionsUser] = setInterval(() => {
-                    updateCountdown(optionsUser);
+                  countdownTimers[dataUser] = setInterval(() => {
+                    updateCountdown(dataUser);
                   }, 1000);
                 })
                 .catch(error => {
                   console.error('Error retrieving data:', error);
                 });
-
             })
-            .catch((error) => {
-              interaction.reply({
-                content: 'Role not added!',
-                ephemeral: true
-              })
-              console.log(error)
-            });
+            .catch((error) => console.error('Error adding role on join:', error));
         } else {
-          console.error(`Role with ID ${optionsUser} not found.`);
+          console.error(`Role with ID ${newbieRole} not found.`);
         }
       } catch (error) {
-        interaction.reply({
-          content: error,
-          ephemeral: true
-        })
+
       }
-    }
-  }
+    });
 
-});
-
-client.on('guildMemberAdd', async (member) => {
-  try {
-    const newbieRole = member.guild.roles.cache.get(config.role_id);
-    const currentDate = Math.floor(Date.now() / 1000);
-    const endDate = currentDate + parseTimeToSeconds(config.role_duration);
-    if (newbieRole) {
-      member.roles.add(newbieRole)
-        .then(() => {
-          const dataUser = member.id;
-          const data = ref.child(dataUser);
-          data.once('value')
-            .then(snapshot => {
-              const data = snapshot.val();
-              ref.child(dataUser).set({
-                  userid: dataUser,
-                  isNew: true,
-                  joinDate: currentDate,
-                  endDate: endDate,
-                  roleid: config.role_id,
-                })
-                .then(() => {})
-                .catch(error => {
-                  console.error('Error pushing data:', error);
-                });
-              countdownTimers[dataUser] = setInterval(() => {
-                updateCountdown(dataUser);
-              }, 1000);
-            })
-            .catch(error => {
-              console.error('Error retrieving data:', error);
-            });
-        })
-        .catch((error) => console.error('Error adding role on join:', error));
-    } else {
-      console.error(`Role with ID ${newbieRole} not found.`);
-    }
-  } catch (error) {
-
-  }
-});
-
-client.login(process.env.TOKEN);
+    client.login(process.env.TOKEN);
