@@ -25,9 +25,9 @@ const countdownTimers = {};
 
 firebaseadmin.initializeApp({
   credential: firebaseadmin.credential.cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY
+    projectId: process.env.PROJECT_ID,
+    clientEmail: process.env.CLIENT_EMAIL,
+    privateKey: process.env.PRIVATE_KEY
   }),
   databaseURL: 'https://ucomebooster-18265-default-rtdb.firebaseio.com' // Replace 'your-project-id' with your Firebase project ID
 });
