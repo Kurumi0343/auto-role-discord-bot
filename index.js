@@ -27,7 +27,7 @@ firebaseadmin.initializeApp({
   credential: firebaseadmin.credential.cert({
     projectId: process.env.FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY
+    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
   }),
   databaseURL: 'https://ucomebooster-18265-default-rtdb.firebaseio.com' // Replace 'your-project-id' with your Firebase project ID
 });
