@@ -104,12 +104,14 @@ client.on('ready', async () => {
   ref.once('value')
     .then(snapshot => {
       const childNames = Object.keys(snapshot.val() || {});
-      console.log('Child names:', childNames);
+      childNames.forEach(childName => {
+        countdownTimers[childName] = setInterval(() => {
+          updateCountdown(childName);
+        }, 1000);
+      });
     })
     .catch(error => {
-      countdownTimers[childNames] = setInterval(() => {
-        updateCountdown(childNames);
-      }, 1000);
+
     });
   const commandsArray = commands.map((command) => ({
     ...command,
