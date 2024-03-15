@@ -142,7 +142,7 @@ client.on('interactionCreate', async (interaction) => {
     if (commandName === 'ping') {
       try {
         await interaction.reply({
-          content: `This is bot is online total entries ${jsonLength}`,
+          content: `This is bot is online`,
           ephemeral: true
         });
       } catch (error) {
