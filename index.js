@@ -42,7 +42,7 @@ const client = new Client({
 });
 
 function parseTimeToSeconds(timeString) {
-  const regex = /^(\d+)([smhd])$/;
+  const regex = /^(\d+)([smhdk])$/;
   const match = timeString.match(regex);
 
   if (!match) {
