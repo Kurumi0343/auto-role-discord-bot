@@ -174,7 +174,7 @@ client.on('interactionCreate', async (interaction) => {
                           userid: dataUser,
                           isNew: true,
                           joinDate: currentTimestamp,
-                          endDate: `${endDate}`,
+                          endDate: endDate,
                           roleid: config.role_id,
                         })
                         .then(() => {})
