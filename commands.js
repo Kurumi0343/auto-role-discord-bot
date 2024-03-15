@@ -9,6 +9,12 @@ module.exports =
       ],
     },
     {
+      name: 'validate',
+      description: 'reset role of all new users for the past 59 days',
+      options: [
+      ],
+    },
+    {
       name: 'setrole',
       description: 'set role',
       options: [
