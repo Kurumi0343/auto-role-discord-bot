@@ -201,7 +201,7 @@ client.on('interactionCreate', async (interaction) => {
               content: 'Validated!',
               ephemeral: true
             });
-          } catch {}
+          } catch(error) {}
           if (commandName === 'setrole') {
             try {
               const newbieRole = interaction.guild.roles.cache.get(options.getString('role_id'));
