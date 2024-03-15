@@ -159,6 +159,7 @@ client.on('interactionCreate', async (interaction) => {
           const currentTimestamp = Math.floor(Date.now() / 1000);
           const daysInServer = Math.floor(currentTimestamp - joinTimestamp);
           const endDate = Math.floor(currentTimestamp + parseTimeToSeconds(config.role_duration) - daysInServer);
+          console.log(endDate)
           if (joinTimestamp > sixtyDaysAgo) {
             if (newbieRole) {
               member.roles.add(newbieRole)
