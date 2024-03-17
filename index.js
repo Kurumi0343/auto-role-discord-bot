@@ -96,7 +96,7 @@ async function updateCountdown(entry) {
         console.error('Error retrieving data:', error);
       });
   } catch (error) {
-    console.log(error)
+    console.log(error + entry)
   }
 }
 
