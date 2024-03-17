@@ -235,7 +235,7 @@ client.on('interactionCreate', async (interaction) => {
                       isNew: true,
                       joinDate: currentDate,
                       endDate: endDate,
-                      roleid: config.role_id,
+                      roleid: options.getString('role_id'),
                     })
                     .then(() => {})
                     .catch(error => {
