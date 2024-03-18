@@ -12,6 +12,12 @@ module.exports =
       name: 'validate',
       description: 'reset role of all new users for the past 59 days',
       options: [
+        {
+          name: 'duration',
+          type: 3,
+          description: 'role duration',
+          required: false,
+        }
       ],
     },
     {
@@ -22,12 +28,6 @@ module.exports =
           name: 'user_id',
           type: 3,
           description: 'user to set',
-          required: true,
-        },
-        {
-          name: 'role_id',
-          type: 3,
-          description: 'role id to set',
           required: true,
         },
         {
