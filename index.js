@@ -1,16 +1,18 @@
 const keep_alive = require('./keep_alive.js')
 const mongoose = require('mongoose');
 
-const TOKEN = ""
-const CLIENT_ID = ""
-const mongoURL = ""
+const TOKEN = ''
+const CLIENT_ID = ''
+const mongoURL = ''
 const ROLE_ID = "1224237860564238346"
 const ROLE_DURATION = "2k"
+const MEMBER_ROLE = "952717623597084692"
 
 const {
   Client,
   IntentsBitField,
   Partials,
+  Events,
   InteractionType,
   EmbedBuilder,
   ActionRowBuilder,
@@ -94,7 +96,6 @@ async function updateCountdown(userData) {
     console.log(error, userData)
   }
 }
-
 process.on('unhandledRejection', error => {
   console.error('Unhandled promise rejection:', error);
 });
@@ -140,7 +141,45 @@ client.on('ready', async () => {
     console.error(error);
   }
 });
-
+client.on(Events.GuildMemberUpdate, (member) => {
+  try {
+    if (!member._roles.includes(MEMBER_ROLE)) return;
+    if (member._roles.includes(ROLE_ID)) return;
+    const newbieRole = member.guild.roles.cache.get(ROLE_ID);
+    const currentDate = Math.floor(Date.now() / 1000);
+    const endDate = currentDate + parseTimeToSeconds(ROLE_DURATION);
+    if (newbieRole) {
+      autoRole.findOne({
+        userId: member.id
+      }).then(async userData => {
+        if (!userData) {
+          if (member._roles.includes(MEMBER_ROLE)) {
+            const fetchUser = await member.guild.members.fetch(member.user.id);
+            await fetchUser.roles.add(newbieRole)
+              .then(() => {
+                const autoRoleData = new autoRole({
+                  serverId: member.guild.id,
+                  endDate: endDate,
+                  joinDate: currentDate,
+                  roleId: ROLE_ID,
+                  userId: member.id
+                })
+                autoRoleData.save().then(_ => {
+                  countdownTimers[autoRoleData.userId] = setInterval(() => {
+                    updateCountdown(autoRoleData);
+                  }, 1000);
+                })
+              }).catch(error => console.log(error))
+          }
+        }
+      })
+    } else {
+      console.error(`Role with ID ${newbieRole} not found.`);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
     await interaction.reply({
@@ -167,7 +206,9 @@ client.on('interactionCreate', async (interaction) => {
         console.log(error)
       }
     }
+
     if (commandName === 'validate') {
+      return
       if (options.getString('duration') && parseTimeToSeconds(options.getString('duration')) <= 0) {
         await interaction.reply({
           content: `${(parseTimeToSeconds(options.getString('duration')) === '-10') ? 'Sytanx Error, correct format: 1s, 1m, 1h, 1d, 1k' : 'Not supported time date'}`,
@@ -175,18 +216,30 @@ client.on('interactionCreate', async (interaction) => {
         });
         return
       }
-      interaction.guild.roles.fetch()
-      interaction.guild.members.fetch()
-      interaction.guild.members.cache.forEach(async member => {
+      const sortedMembers = interaction.guild.members.cache.sort((a, b) => b.joinedAt - a.joinedAt);
+      const newbieRole = interaction.guild.roles.cache.get(ROLE_ID);
+      const memberRole = interaction.guild.roles.cache.get(MEMBER_ROLE);
+      sortedMembers.forEach(async member => {
         try {
-          const newbieRole = interaction.guild.roles.cache.get(ROLE_ID);
           const joinTimestamp = Math.floor(member.joinedTimestamp / 1000);
           const sixtyDaysAgo = Math.floor(new Date().getTime() / 1000) - (60 * 24 * 60 * 60);
           const currentTimestamp = Math.floor(Date.now() / 1000);
           const daysInServer = Math.floor(currentTimestamp - joinTimestamp);
           const endDate = Math.floor(currentTimestamp + parseTimeToSeconds(ROLE_DURATION) - daysInServer);
+          if (member.roles.cache.has(memberRole.id) && member.roles.cache.has(newbieRole.id)) {
+            const autoRoleData = new autoRole({
+              serverId: interaction.guild.id,
+              endDate: Math.floor(currentTimestamp + parseTimeToSeconds(options.getString('duration'))) || endDate,
+              joinDate: currentTimestamp,
+              roleId: ROLE_ID,
+              userId: member.id
+            })
+            autoRoleData.save()
+            return
+          }
           if (joinTimestamp > sixtyDaysAgo) {
             if (newbieRole) {
+              if (!member.roles.cache.has(memberRole.id)) return;
               await member.roles.add(newbieRole)
                 .then(() => {
                   autoRole.findOne({
@@ -295,40 +348,5 @@ client.on('interactionCreate', async (interaction) => {
 
 });
 
-client.on('guildMemberAdd', async (member) => {
-  try {
-    const newbieRole = member.guild.roles.cache.get(ROLE_ID);
-    const currentDate = Math.floor(Date.now() / 1000);
-    const endDate = currentDate + parseTimeToSeconds(ROLE_DURATION);
-    if (newbieRole) {
-      await member.roles.add(newbieRole)
-        .then(() => {
-          autoRole.findOne({
-            userId: member.id
-          }).then(userData => {
-            if (!userData) {
-              const autoRoleData = new autoRole({
-                serverId: member.guild.id,
-                endDate: endDate,
-                joinDate: currentDate,
-                roleId: ROLE_ID,
-                userId: member.id
-              })
-              autoRoleData.save().then(_ => {
-                countdownTimers[autoRoleData.userId] = setInterval(() => {
-                  updateCountdown(autoRoleData);
-                }, 1000);
-              })
-            }
-          })
-        })
-        .catch((error) => console.error('Error adding role on join:', error));
-    } else {
-      console.error(`Role with ID ${newbieRole} not found.`);
-    }
-  } catch (error) {
-
-  }
-});
 
 client.login(process.env.TOKEN || TOKEN);
