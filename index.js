@@ -348,5 +348,43 @@ client.on('interactionCreate', async (interaction) => {
 
 });
 
+client.on('guildMemberAdd', async (member) => {
+  try {
+    const newbieRole = member.guild.roles.cache.get(ROLE_ID);
+    const memberRole = member.guild.roles.cache.get(MEMBER_ROLE);
+    const currentDate = Math.floor(Date.now() / 1000);
+    const endDate = currentDate + parseTimeToSeconds(ROLE_DURATION);
+    if (newbieRole) {
+      autoRole.findOne({
+        userId: member.id
+      }).then(userData => {
+        if (!member.roles.cache.has(memberRole.id)) return;
+        if (!userData) {
+          const autoRoleData = new autoRole({
+            serverId: member.guild.id,
+            endDate: endDate,
+            joinDate: currentDate,
+            roleId: ROLE_ID,
+            userId: member.id
+          })
+          autoRoleData.save().then(_ => {
+            countdownTimers[autoRoleData.userId] = setInterval(() => {
+              updateCountdown(autoRoleData);
+            }, 1000);
+          })
+        } else {
+          userData.endDate = endDate;
+          userData.joinDate = currentDate;
+          userData.save()
+        }
+      })
+    } else {
+      console.error(`Role with ID ${newbieRole} not found.`);
+    }
+  } catch (error) {
+
+  }
+});
+
 
 client.login(process.env.TOKEN || TOKEN);
