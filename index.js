@@ -141,10 +141,11 @@ client.on('ready', async () => {
     console.error(error);
   }
 });
-client.on(Events.GuildMemberUpdate, (member) => {
+client.on(Events.GuildMemberUpdate, async (member) => {
+  const fetchedMember = await member.guild.members.fetch(member.id);
   try {
-    if (!member._roles.includes(MEMBER_ROLE)) return;
-    if (member._roles.includes(ROLE_ID)) return;
+    if (!fetchedMember.roles.cache.has(MEMBER_ROLE)) return;
+    if (fetchedMember.roles.cache.has(ROLE_ID)) return;
     const newbieRole = member.guild.roles.cache.get(ROLE_ID);
     const currentDate = Math.floor(Date.now() / 1000);
     const endDate = currentDate + parseTimeToSeconds(ROLE_DURATION);
@@ -152,9 +153,9 @@ client.on(Events.GuildMemberUpdate, (member) => {
       autoRole.findOne({
         userId: member.id
       }).then(async userData => {
+        const fetchUser = await member.guild.members.fetch(member.user.id);
         if (!userData) {
-          if (member._roles.includes(MEMBER_ROLE)) {
-            const fetchUser = await member.guild.members.fetch(member.user.id);
+          if (fetchedMember.roles.cache.has(MEMBER_ROLE)) {
             await fetchUser.roles.add(newbieRole)
               .then(() => {
                 const autoRoleData = new autoRole({
@@ -171,6 +172,11 @@ client.on(Events.GuildMemberUpdate, (member) => {
                 })
               }).catch(error => console.log(error))
           }
+        } else {
+          await fetchUser.roles.add(newbieRole)
+          userData.endDate = endDate;
+          userData.joinDate = currentDate;
+          userData.save()
         }
       })
     } else {
@@ -354,11 +360,12 @@ client.on('guildMemberAdd', async (member) => {
     const memberRole = member.guild.roles.cache.get(MEMBER_ROLE);
     const currentDate = Math.floor(Date.now() / 1000);
     const endDate = currentDate + parseTimeToSeconds(ROLE_DURATION);
+    const fetchedMember = await member.guild.members.fetch(member.id);
     if (newbieRole) {
       autoRole.findOne({
         userId: member.id
-      }).then(userData => {
-        if (!member.roles.cache.has(memberRole.id)) return;
+      }).then(async userData => {
+        if (!fetchedMember.roles.cache.has(memberRole.id)) return;
         if (!userData) {
           const autoRoleData = new autoRole({
             serverId: member.guild.id,
@@ -377,6 +384,7 @@ client.on('guildMemberAdd', async (member) => {
           userData.joinDate = currentDate;
           userData.save()
         }
+        await fetchedMember.roles.add(newbieRole)
       })
     } else {
       console.error(`Role with ID ${newbieRole} not found.`);
