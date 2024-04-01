@@ -175,6 +175,8 @@ client.on('interactionCreate', async (interaction) => {
         });
         return
       }
+      interaction.guild.roles.fetch()
+      interaction.guild.members.fetch()
       interaction.guild.members.cache.forEach(async member => {
         try {
           const newbieRole = interaction.guild.roles.cache.get(ROLE_ID);
