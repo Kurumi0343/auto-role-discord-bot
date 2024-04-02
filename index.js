@@ -141,29 +141,30 @@ client.on('ready', async () => {
     console.error(error);
   }
 });
-client.on(Events.GuildMemberUpdate, async (member) => {
-  const fetchedMember = await member.guild.members.fetch(member.id);
+
+client.on(Events.GuildMemberUpdate, async (member,memberNew) => {
+  const fetchedMember = await memberNew.guild.members.fetch(memberNew.id);
   try {
     if (!fetchedMember.roles.cache.has(MEMBER_ROLE)) return;
     if (fetchedMember.roles.cache.has(ROLE_ID)) return;
-    const newbieRole = member.guild.roles.cache.get(ROLE_ID);
+    const newbieRole = memberNew.guild.roles.cache.get(ROLE_ID);
     const currentDate = Math.floor(Date.now() / 1000);
     const endDate = currentDate + parseTimeToSeconds(ROLE_DURATION);
     if (newbieRole) {
       autoRole.findOne({
-        userId: member.id
+        userId: memberNew.id
       }).then(async userData => {
-        const fetchUser = await member.guild.members.fetch(member.user.id);
+        const fetchUser = await memberNew.guild.members.fetch(memberNew.user.id);
         if (!userData) {
           if (fetchedMember.roles.cache.has(MEMBER_ROLE)) {
             await fetchUser.roles.add(newbieRole)
               .then(() => {
                 const autoRoleData = new autoRole({
-                  serverId: member.guild.id,
+                  serverId: memberNew.guild.id,
                   endDate: endDate,
                   joinDate: currentDate,
                   roleId: ROLE_ID,
-                  userId: member.id
+                  userId: memberNew.id
                 })
                 autoRoleData.save().then(_ => {
                   countdownTimers[autoRoleData.userId] = setInterval(() => {
@@ -204,7 +205,7 @@ client.on('interactionCreate', async (interaction) => {
       try {
         if (!interaction.deferred && !interaction.replied) {
           await interaction.reply({
-            content: `This is bot is online`,
+            content: `This bot is online`,
             ephemeral: true
           });
         }
