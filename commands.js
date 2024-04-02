@@ -8,6 +8,7 @@ module.exports = [{
   {
     name: 'setrole',
     description: 'set role',
+    default_member_permissions: "0",
     options: [{
         name: 'user_id',
         type: 3,
