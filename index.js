@@ -116,7 +116,7 @@ client.on('ready', async () => {
         })
       }
     })
-  }, 1000);
+  }, 60000 * 10);
 
 
   const commandsArray = commands.map((command) => ({
