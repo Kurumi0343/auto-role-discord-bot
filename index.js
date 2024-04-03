@@ -89,8 +89,6 @@ async function updateCountdown(data) {
             autoRole.findOneAndDelete({
               userId: userData.userId
             }).then(itemDelete => {
-              clearInterval(countdownTimers[itemDelete.userId]);
-              delete countdownTimers[itemDelete.userId];
             }).catch(_ => null)
           })
           .catch((error) => console.log(error));
@@ -109,16 +107,18 @@ client.on('ready', async () => {
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
-  autoRole.find({}, 'userId')
+  countdownTimers['GUILD'] = setInterval(() => {
+    console.log('1')
+    autoRole.find({}, 'userId')
     .then(rolesData => {
       if (rolesData.length > 0) {
         rolesData.forEach(data => {
-          countdownTimers[data.userId] = setInterval(() => {
-            updateCountdown(data.userId);
-          }, 1000);
+          updateCountdown(data.userId);
         })
       }
     })
+  }, 1000);
+
 
   const commandsArray = commands.map((command) => ({
     ...command,
@@ -171,9 +171,6 @@ client.on(Events.GuildMemberUpdate, async (member, memberNew) => {
                   userId: memberNew.id
                 })
                 autoRoleData.save().then(_ => {
-                  countdownTimers[autoRoleData.userId] = setInterval(() => {
-                    updateCountdown(autoRoleData);
-                  }, 1000);
                 })
               }).catch(error => console.log(error))
           }
@@ -291,20 +288,11 @@ client.on('interactionCreate', async (interaction) => {
                     userId: fetchUser.id
                   })
                   autoRoleData.save().then(_ => {
-                    countdownTimers[autoRoleData.userId] = setInterval(() => {
-                      updateCountdown(autoRoleData);
-                    }, 1000);
                   })
                 } else {
                   userData.roleId = ROLE_ID;
                   userData.endDate = endDate;
                   userData.save().then(_ => {
-                    clearInterval(countdownTimers[userData.userId]);
-                    delete countdownTimers[userData.userId];
-
-                    countdownTimers[userData.userId] = setInterval(() => {
-                      updateCountdown(userData);
-                    }, 1000);
                   })
                 }
               })
@@ -344,9 +332,6 @@ client.on('guildMemberAdd', async (member) => {
             userId: member.id
           })
           autoRoleData.save().then(_ => {
-            countdownTimers[autoRoleData.userId] = setInterval(() => {
-              updateCountdown(autoRoleData);
-            }, 1000);
           })
         } else {
           userData.endDate = endDate;
