@@ -108,7 +108,6 @@ client.on('ready', async () => {
     useUnifiedTopology: true
   })
   countdownTimers['GUILD'] = setInterval(() => {
-    console.log('1')
     autoRole.find({}, 'userId')
     .then(rolesData => {
       if (rolesData.length > 0) {
