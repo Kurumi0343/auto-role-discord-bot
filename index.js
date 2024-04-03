@@ -107,8 +107,8 @@ client.on('ready', async () => {
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
-  countdownTimers['GUILD'] = setInterval(() => {
-    autoRole.find({}, 'userId')
+  countdownTimers['GUILD'] = setInterval(async () => {
+    await autoRole.find({}, 'userId')
     .then(rolesData => {
       if (rolesData.length > 0) {
         rolesData.forEach(data => {
