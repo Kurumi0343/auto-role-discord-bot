@@ -159,6 +159,11 @@ client.on(Events.GuildMemberUpdate, async (member, memberNew) => {
       }).then(async userData => {
         const fetchUser = await memberNew.guild.members.fetch(memberNew.user.id);
         if (!userData) {
+          
+          const joinTimestamp = Math.floor(fetchedMember.joinedTimestamp / 1000);
+          const sixtyDaysAgo = Math.floor(new Date().getTime() / 1000) - (65 * 24 * 60 * 60);
+          if (joinTimestamp < sixtyDaysAgo) return;
+
           if (fetchedMember.roles.cache.has(MEMBER_ROLE)) {
             await fetchUser.roles.add(newbieRole)
               .then(() => {
