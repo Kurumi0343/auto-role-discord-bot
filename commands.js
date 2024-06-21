@@ -4,6 +4,13 @@ module.exports = [{
     name: 'ping',
     description: 'pong',
     options: [],
+    default_member_permissions: 1 << 5
+  },
+  {
+    name: 'validate',
+    description: 'pong',
+    options: [],
+    default_member_permissions: 1 << 5
   },
   {
     name: 'setrole',
